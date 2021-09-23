@@ -18,6 +18,7 @@ const N__ = function(e) { return e };
 
 const AppDisplay = imports.ui.appDisplay;
 const AppFavorites = imports.ui.appFavorites;
+const BoxPointer = imports.ui.boxpointer;
 const Dash = imports.ui.dash;
 const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
@@ -383,6 +384,7 @@ var DockAbstractAppIcon = GObject.registerClass({
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window);
             });
+            this._menu.setApp(this.app);
             this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
                 if (!isPoppedUp)
                     this._onMenuPoppedDown();
@@ -409,14 +411,15 @@ var DockAbstractAppIcon = GObject.registerClass({
             this._menu.actor.connect('destroy', function() {
                 Main.overview.disconnect(id);
             });
-
+            Main.uiGroup.add_actor(this._menu.actor);
+            this._menu.blockSourceEvents = true;
             this._menuManager.addMenu(this._menu);
         }
 
         this.emit('menu-state-changed', true);
 
         this.set_hover(true);
-        this._menu.popup();
+        this._menu.open(BoxPointer.PopupAnimation.FULL);
         this._menuManager.ignoreRelease();
         this.emit('sync-tooltip');
 
@@ -907,7 +910,7 @@ function makeAppIcon(app, monitorIndex, iconAnimator) {
  * - Add open windows thumbnails instead of list
  * - update menu when application windows change
  */
-const DockAppIconMenu = class DockAppIconMenu extends AppDisplay.AppIconMenu {
+const DockAppIconMenu = class DockAppIconMenu extends AppDisplay.AppMenu {
 
     constructor(source) {
         let side = Utils.getPosition();
